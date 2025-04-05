@@ -1,0 +1,59 @@
+@model IEnumerable<eCommerce.Models.Product>
+@{
+    ViewData["Title"] = "Products";
+}
+
+<h1 class="mb-4">Our Products</h1>
+
+<div class="row">
+    @foreach (var product in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card product-card">
+                <img src="@product.ImageUrl" class="card-img-top product-img" alt="@product.Name">
+                <div class="card-body">
+                    <h5 class="card-title">@product.Name</h5>
+                    <p class="card-text">@product.Description</p>
+                    <p class="card-text"><strong>Price: @product.Price.ToString("C")</strong></p>
+                    <button class="btn btn-primary add-to-cart" data-product-id="@product.Id">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                fetch('/ShoppingCart/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `productId=${productId}&__RequestVerificationToken=${document.querySelector('input[name="__RequestVerificationToken"]').value}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Product added to cart');
+                        // Update cart count
+                        updateCartCount();
+                    } else {
+                        alert('Error adding product to cart');
+                    }
+                });
+            });
+        });
+
+        function updateCartCount() {
+            fetch('/ShoppingCart/GetCartCount')
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('.badge').textContent = data.count;
+                });
+        }
+    </script>
+}
+

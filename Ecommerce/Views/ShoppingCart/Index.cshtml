@@ -1,0 +1,79 @@
+@model IEnumerable<eCommerce.Models.ShoppingCart>
+@{
+    ViewData["Title"] = "Shopping Cart";
+    decimal total = 0;
+}
+
+<h1>Shopping Cart</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Your shopping cart is empty.
+    </div>
+    <a asp-controller="Products" asp-action="Index" class="btn btn-primary">Continue Shopping</a>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var subtotal = item.Product.Price * item.Quantity;
+                    total += subtotal;
+                    
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="@item.Product.ImageUrl" alt="@item.Product.Name" style="width: 50px; height: 50px; object-fit: cover;" class="mr-3">
+                                <span>@item.Product.Name</span>
+                            </div>
+                        </td>
+                        <td>$@item.Product.Price.ToString("0.00")</td>
+                        <td>
+                            <form asp-action="UpdateCart" method="post" class="form-inline">
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <input type="number" name="quantity" value="@item.Quantity" min="1" max="100" class="form-control" style="width: 70px;" onchange="this.form.submit()">
+                            </form>
+                        </td>
+                        <td>$@subtotal.ToString("0.00")</td>
+                        <td>
+                            <form asp-action="RemoveFromCart" method="post">
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>Total:</strong></td>
+                    <td><strong>$@total.ToString("0.00")</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    <div class="d-flex justify-content-between mt-4">
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary">Continue Shopping</a>
+        <div>
+            <form asp-action="ClearCart" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger">Clear Cart</button>
+            </form>
+            <a asp-controller="Orders" asp-action="Checkout" class="btn btn-success ml-2">Proceed to Checkout</a>
+        </div>
+    </div>
+}
+

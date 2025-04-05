@@ -1,0 +1,77 @@
+@model IEnumerable<eCommerce.Models.Product>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to Our KOzawa Store</h1>
+    <p>Find the best products at the best prices.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Featured Products</h2>
+    </div>
+</div>
+
+<div class="row">
+    @foreach (var product in Model.Take(4))
+    {
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name">
+                <div class="card-body">
+                    <h5 class="card-title">@product.Name</h5>
+                    <p class="card-text">@product.Description</p>
+                    <p class="card-text"><strong>$@product.Price.ToString("0.00")</strong></p>
+                    <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" class="btn btn-primary">View Details</a>                    
+                    <input type="hidden" name="productId" value="@product.Id" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <button class="btn btn-primary add-to-cart" data-product-id="@product.Id">Add to Cart</button>                    
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary">View All Products</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                fetch('/ShoppingCart/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `productId=${productId}&__RequestVerificationToken=${document.querySelector('input[name="__RequestVerificationToken"]').value}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Product added to cart');
+                        // Update cart count
+                        updateCartCount();
+                    } else {
+                        alert('Error adding product to cart');
+                    }
+                });
+            });
+        });
+
+        function updateCartCount() {
+            fetch('/ShoppingCart/GetCartCount')
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('.badge').textContent = data.count;
+                });
+        }
+    </script>
+}
+
